@@ -866,7 +866,13 @@ ossl_pkcs7_add_data(VALUE self, VALUE data)
         ossl_raise(ePKCS7Error, "PKCS7_dataInit");
     }
     for (;;) {
-        if ((len = BIO_read(in, buf, sizeof(buf))) <= 0)
+        len = BIO_read(in, buf, sizeof(buf));
+        if (len < 0) {
+            BIO_free_all(out);
+            BIO_free(in);
+            ossl_raise(ePKCS7Error, "BIO_read");
+        }
+        if (len == 0)
             break;
         if (BIO_write(out, buf, len) != len) {
             BIO_free_all(out);
